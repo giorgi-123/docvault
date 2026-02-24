@@ -19,6 +19,8 @@ dependencies = [
     "passlib[bcrypt]",
     "boto3",
     "psycopg2-binary",
+    "passlib[bcrypt]",
+    "bcrypt<4.1.0",
 ]
 
 [project.optional-dependencies]

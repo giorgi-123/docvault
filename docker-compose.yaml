@@ -1,6 +1,6 @@
 services:
   psql:
-    image: postgres:17
+    image: docker.io/library/postgres:17
     container_name: docvault-db
     ports:
       - "5433:5432"
