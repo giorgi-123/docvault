@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
 
   localstack:
-    image: docker.io/library/localstack/localstack:latest
+    image: localstack/localstack
     container_name: docvault-localstack
     ports:
       - "4566:4566"
