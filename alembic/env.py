@@ -7,6 +7,8 @@ from alembic import context
 
 from docvault.database import Base
 from docvault.models.user import User
+from docvault.models.folder import Folder
+from docvault.models.file import File
 from docvault.config import settings
 
 
