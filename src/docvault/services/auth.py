@@ -2,8 +2,25 @@ from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 from typing import List
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from docvault.config import settings
+from docvault.models.user import User
+from docvault.database import get_db
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
+async def get_current_user(
+        token: str = Depends(oauth2_scheme),
+        session: AsyncSession = Depends(get_db)
+):
+    pass
+
+
+
 
 class Auth:
     def __init__(self, schemes: List[str] = ["bcrypt"]):
