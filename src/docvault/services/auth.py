@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from docvault.config import settings
 from docvault.models.user import User
 from docvault.database import get_db
+from docvault.services.user import get_user_by_email
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -17,10 +18,29 @@ async def get_current_user(
         token: str = Depends(oauth2_scheme),
         session: AsyncSession = Depends(get_db)
 ):
-    pass
-
-
-
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        user = await get_user_by_email(session=session, email=email)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 class Auth:
     def __init__(self, schemes: List[str] = ["bcrypt"]):
