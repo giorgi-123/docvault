@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 
 from docvault.routers.auth import router
+from docvault.routers.folder import folder_router
 
 
 app = FastAPI(
@@ -18,3 +19,4 @@ def health_check():
 
 
 app.include_router(router)
+app.include_router(folder_router)
