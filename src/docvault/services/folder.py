@@ -45,3 +45,15 @@ async def delete_folder(session: AsyncSession, folder_id: int, user_id: int) -> 
     )
     result = await session.execute(query)
     return result.rowcount > 0
+
+
+async def check_if_parent(session: AsyncSession, folder_id: int, user_id: int) -> bool:
+    """Check if folder has subfolders"""
+    query = select(Folder).where(
+        Folder.parent_id==folder_id,
+        Folder.user_id==user_id
+    )
+    result = await session.execute(query)
+    # we could also use `result.scalars().first() is not None` -> simplier
+    # though we will stick with current one
+    return result.scalar_one_or_none() is not None

@@ -4,11 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from docvault.schemas.folder import FolderCreate, FolderResponse, FolderList
 from docvault.database import get_db
 from docvault.services.auth import get_current_user
-from docvault.services.folder import create_folder, delete_folder, get_folder_by_id, get_user_folders
+from docvault.services.folder import create_folder, delete_folder, get_folder_by_id,\
+    get_user_folders, check_if_parent
 from docvault.models.user import User
 
 folder_router = APIRouter(
-    prefix="/folder",
+    prefix="/folders",
     tags=["folder"]
 )
 
@@ -18,7 +19,7 @@ def raise_unauthorized():
                 detail="Unauthorized",
                 headers={"WWWW-Authenticate": "Bearer"})
 
-@folder_router.post("/folders", response_model=FolderResponse)
+@folder_router.post("/", response_model=FolderResponse)
 async def create_folder_endpoint(
     data: FolderCreate,
     session: AsyncSession=Depends(get_db), 
@@ -33,10 +34,10 @@ async def create_folder_endpoint(
         id=folder.id,
         name=folder.name,
         parent_id=folder.parent_id,
-        created_at=folder.created_at
+        created_at=folder.created_at,
     )
 
-@folder_router.get("/folders", response_model=FolderList)
+@folder_router.get("/", response_model=FolderList)
 async def user_folders_endpoint(
     parent_id: int = None,
     session: AsyncSession=Depends(get_db),
@@ -47,18 +48,14 @@ async def user_folders_endpoint(
         user_id=current_user.id,
         parent_id=parent_id,
     )
-    
-    if not folders:
-        raise HTTPException(
-            status_code=404,
-            detail="No folder exists on current user!"
-            )
+
+    folder_responses = [FolderResponse.model_validate(folder) for folder in folders]
 
     return FolderList(
-        folders=folders
+        folders=folder_responses
     )
 
-@folder_router.get("/folders/{folder_id}", response_model=FolderResponse)
+@folder_router.get("/{folder_id}", response_model=FolderResponse)
 async def get_single_folder_endpoint(
     folder_id: int,
     session: AsyncSession=Depends(get_db),
@@ -83,12 +80,22 @@ async def get_single_folder_endpoint(
         created_at=folder.created_at
     )
 
-@folder_router.delete("/folders/{folder_id}")
+@folder_router.delete("/{folder_id}")
 async def delete_folder_endpoint(
     folder_id: int,
     session: AsyncSession=Depends(get_db),
     current_user: User=Depends(get_current_user)
 ):
+    has_subfolders = await check_if_parent(
+        session=session,
+        folder_id=folder_id,
+        user_id=current_user.id)
+    if has_subfolders:
+        raise HTTPException(
+            status_code=403,
+            detail="You can not delete folder that has subfolders"
+        )
+
     folder_delete = await delete_folder(
         session=session,
         folder_id=folder_id,
@@ -100,7 +107,6 @@ async def delete_folder_endpoint(
             detail="Resource has not been found",
         )
     return Response(
-        Content="Delete Successful",
         status_code=204
         )
 

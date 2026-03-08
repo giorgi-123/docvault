@@ -1,23 +1,26 @@
-from passlib.context import CryptContext
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from jose import jwt
 from datetime import datetime, timedelta
 from typing import List
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from docvault.config import settings
 from docvault.models.user import User
 from docvault.database import get_db
-from docvault.services.user import get_user_by_email
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+bearer_scheme = HTTPBearer()
 
 async def get_current_user(
-        token: str = Depends(oauth2_scheme),
+        # token: str = Depends(oauth2_scheme),
+        credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
         session: AsyncSession = Depends(get_db)
-):
+) -> User:
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         email = payload.get("sub")
@@ -27,6 +30,7 @@ async def get_current_user(
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        from docvault.services.user import get_user_by_email
         user = await get_user_by_email(session=session, email=email)
         if not user:
             raise HTTPException(
@@ -43,14 +47,18 @@ async def get_current_user(
         )
 
 class Auth:
-    def __init__(self, schemes: List[str] = ["bcrypt"]):
-        self.pwd_context = CryptContext(schemes=schemes, deprecated="auto")
+    def __init__(self):
+        self.pwd_hasher = PasswordHasher()
 
     def hash_password(self, password: str) -> str:
-        return self.pwd_context.hash(password)
+        return self.pwd_hasher.hash(password)
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return self.pwd_context.verify(plain_password, hashed_password)
+        try:
+            self.pwd_hasher.verify(hashed_password, plain_password)
+            return True
+        except VerifyMismatchError:
+            return False
 
     def create_access_token(self, data: dict) -> str:
         expiration_date = datetime.now() + timedelta(minutes=settings.access_token_expire_minutes)

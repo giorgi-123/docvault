@@ -16,11 +16,9 @@ dependencies = [
     "pydantic-settings",
     "pydantic[email]",
     "python-jose[cryptography]",
-    "passlib[bcrypt]",
     "boto3",
     "psycopg2-binary",
-    "passlib[bcrypt]",
-    "bcrypt<4.1.0",
+    "argon2-cffi",
 ]
 
 [project.optional-dependencies]
