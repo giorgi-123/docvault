@@ -13,11 +13,6 @@ folder_router = APIRouter(
     tags=["folder"]
 )
 
-def raise_unauthorized():
-    raise HTTPException(
-                status_code=401,
-                detail="Unauthorized",
-                headers={"WWWW-Authenticate": "Bearer"})
 
 @folder_router.post("/", response_model=FolderResponse)
 async def create_folder_endpoint(
