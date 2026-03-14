@@ -35,7 +35,7 @@ def download(s3_key: str) -> bytes | None:
         return content or None
     except Exception as e:
         _logger.error(f"Exception raised: {e}")
-        return None
+        return False
 
 def delete(s3_key: str) -> bool:
     s3_client = get_client()
