@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 
 from docvault.routers.auth import router
 from docvault.routers.folder import folder_router
-
+from docvault.routers.file import file_router
 
 app = FastAPI(
     title="Document Vault",
@@ -20,3 +20,4 @@ def health_check():
 
 app.include_router(router)
 app.include_router(folder_router)
+app.include_router(file_router)

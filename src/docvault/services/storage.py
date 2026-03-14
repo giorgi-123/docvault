@@ -25,7 +25,7 @@ def upload(file_content: bytes, s3_key: str, content_type: str) -> bool:
         return bool(response)
     except Exception as e:
         _logger.error(f"Exception raised: {e}")
-        raise e
+        return False
 
 def download(s3_key: str) -> bytes | None:
     s3_client = get_client()
@@ -44,5 +44,5 @@ def delete(s3_key: str) -> bool:
         return bool(response)
     except Exception as e:
         _logger.error(f"Exception raised {e}")
-        raise e
+        return False
 
