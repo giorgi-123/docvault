@@ -151,5 +151,3 @@ async def delete_file_endpoint(
     return Response(
         status_code=204
     )
-
-print("Test commit")
