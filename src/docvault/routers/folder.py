@@ -103,5 +103,5 @@ async def delete_folder_endpoint(
         )
     return Response(
         status_code=204
-        )
+    )
 
