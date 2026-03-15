@@ -1,0 +1,18 @@
+services:
+  psql:
+    image: docker.io/library/postgres:17
+    container_name: docvault-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+  localstack:
+    image: docker.io/localstack/localstack
+    container_name: docvault-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3
