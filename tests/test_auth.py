@@ -65,17 +65,20 @@ async def test_short_password(client):
 #       Login
 # ==================
 
-@pytest.mark.asyncio
+# @pytest.mark.asyncio
+@pytest.mark.skip(reason="not yet implemented")
 async def test_successful_login(client):
     """Test successful login"""
     pass
 
-@pytest.mark.asyncio
+# @pytest.mark.asyncio
+@pytest.mark.skip(reason="not yet implemented")
 async def test_wrong_password(client):
     """Test wrong password input behaviour"""
     pass
 
-@pytest.mark.asyncio
+# @pytest.mark.asyncio
+@pytest.mark.skip(reason="not yet implemented")
 async def test_non_existent_email(client):
     """Test Non-existent email login"""
     pass
