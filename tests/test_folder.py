@@ -56,6 +56,7 @@ async def test_list_folders(client, auth_headers):
     assert list_folders_response.status_code == 200
     data = list_folders_response.json()
     assert isinstance(data["folders"], list)
+    assert len(data["folders"]) == 5
 
 async def test_get_folder_by_id(client, auth_headers):
     """
