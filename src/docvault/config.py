@@ -14,4 +14,4 @@ class Settings(BaseSettings):
     aws_secret_access_key: str = "test"
 
 settings = Settings()
-    
+
