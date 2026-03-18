@@ -77,6 +77,7 @@ async def test_list_files(client, auth_headers):
     assert list_files_response.status_code == 200
     listed_files_data = list_files_response.json()
     assert isinstance(listed_files_data["files"], list)
+    # File in folder should NOT appear when listing root-level files
     assert len(listed_files_data["files"]) == 5
 
 async def test_get_file_by_id(client, auth_headers):
