@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: DocVault - Document Management System
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+
+  DBUsername:
+    Type: String
+    Default: postgres
+    NoEcho: true
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: Database Password (Min 8 characters)
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.13
+    MemorySize: 256
+
+Resources:
+
+  # ============ VPC ============
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-vpc-${Environment}
+
+  # ============ Subnets ============
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+        VpcId: !Ref VPC
+        CidrBlock: 10.0.1.0/24
+        AvailabilityZone: !Select [0, !GetAZs '']
+        Tags:
+          - Key: Name
+            Value: !Sub docvault-private-1-${Environment}
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+        VpcId: !Ref VPC
+        CidrBlock: 10.0.2.0/24
+        AvailabilityZone: !Select [1, !GetAZs '']
+        Tags:
+          - Key: Name
+            Value: !Sub docvault-private-2-${Environment}
+
+  # ============ Route Table ============
+  
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-private-rt-${Environment}
+          
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+    
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: !Sub docvautl-private-2-rb-${Envrionment}
+          RouteTableId:: !Ref PrivateRouteTable
+
+  # ============ API Gateway Enpoint ============
+
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: !Sub com.amazon.${AWS::Region}.s3
+      VpcId: !Ref VPC
+      VpcEndpointType: Gateway
+      RouteTableIds:
+          - !Ref PrivateRouteTable
