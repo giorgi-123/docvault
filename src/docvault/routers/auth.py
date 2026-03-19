@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
 
 from docvault.schemas.user import UserCreate, UserLogin, UserResponse, Token
 from docvault.services.user import create_user, get_user_by_email

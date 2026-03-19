@@ -22,7 +22,7 @@ async def create_file(
         folder_id=folder_id,
     )
     session.add(file)
-    result = await session.flush()
+    await session.flush()
     return file
 
 async def get_user_files(
