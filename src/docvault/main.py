@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from magnum import Magnum
 
 from docvault.routers.auth import router
 from docvault.routers.folder import folder_router
