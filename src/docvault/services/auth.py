@@ -1,8 +1,6 @@
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
-from jose import jwt
 from datetime import datetime, timedelta
-from typing import List
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError

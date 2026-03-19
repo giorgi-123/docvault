@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
 import uuid
 
 from docvault.schemas.file import FileResponse, FileList

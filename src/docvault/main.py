@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 
 from docvault.routers.auth import router
 from docvault.routers.folder import folder_router
