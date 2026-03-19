@@ -1,5 +1,3 @@
-import pytest
-
 # ====================
 #     Health Check
 # ====================
@@ -31,7 +29,7 @@ async def test_duplicate_email(client):
         "password": "examplepassword123",
         "full_name": "Test User",
     }
-    first_user_create = await client.post("/auth/register", json=user_data)
+    await client.post("/auth/register", json=user_data)
     second_user_create = await client.post("/auth/register", json=user_data)
     assert second_user_create.status_code == 400
 

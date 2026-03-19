@@ -1,5 +1,3 @@
-import pytest
-
 
 async def test_upload(client, auth_headers):
     """
@@ -63,7 +61,7 @@ async def test_list_files(client, auth_headers):
         )
         created_files.append(response)
 
-    file_two_response = await client.post(
+    await client.post(
         "/files/",
         files={"file": ("test1.txt", b"File Content 1", "text/plain")},
         params={"folder_id": folder_response.json()["id"]},

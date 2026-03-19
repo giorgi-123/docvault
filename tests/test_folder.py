@@ -1,5 +1,3 @@
-import pytest
-
 
 async def test_create_folder(client, auth_headers):
     """
@@ -117,13 +115,11 @@ async def test_delete_folder_with_subfolders(client, auth_headers):
     parent_data = parent_folder_response.json()
     parent_id = parent_data["id"]
 
-    child_folder_response = await client.post(
+    await client.post(
         "/folders/",
         json={"name": "Child Folder", "parent_id": parent_id},
         headers=auth_headers,
     )
-    child_data = child_folder_response.json()
-
     delete_response = await client.delete(
         f"/folders/{parent_id}",
         headers=auth_headers,
