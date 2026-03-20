@@ -89,18 +89,18 @@ Resources:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
 
-  # ============ API Gateway Enpoint ============
+  # ============ S3 Gateway Enpoint ============
 
   S3Endpoint:
     Type: AWS::EC2::VPCEndpoint
     Properties:
-      ServiceName: !Sub com.amazon.${AWS::Region}.s3
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
       VpcId: !Ref VPC
       VpcEndpointType: Gateway
       RouteTableIds:
         - !Ref PrivateRouteTable
 
-  # ============ API Gateway Enpoint ============
+  # ============ Security Groups ============
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -195,7 +195,7 @@ Resources:
       VpcConfig:
         SecurityGroupIds:
           - !Ref LambdaSecurityGroup
-        Subnetids:
+        SubnetIds:
           - !Ref PrivateSubnet1
           - !Ref PrivateSubnet2
       Environment:
@@ -209,6 +209,12 @@ Resources:
         - S3CrudPolicy:
             BucketName: !Ref FilesBucket
         - VPCAccessPolicy: {}
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:docvault-secret-${Environment}*
       Events:
         Api:
           Type: HttpApi
@@ -220,3 +226,20 @@ Resources:
           Properties:
             Path: /
             Method: Any
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+
+  FunctionName:
+    Description: Lambda Function name
+    Value: !Ref DocVaultFunction
+
+  BucketName:
+    Description: S3 bucket for files
+    Value: !Ref FilesBucket
+
+  RDSEndpoint:
+    Description: RDS Endpoint
+    Value: !GetAtt RDSInstance.Endpoint.Address
