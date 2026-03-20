@@ -46,25 +46,29 @@ Resources:
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
-        VpcId: !Ref VPC
-        CidrBlock: 10.0.1.0/24
-        AvailabilityZone: !Select [0, !GetAZs '']
-        Tags:
-          - Key: Name
-            Value: !Sub docvault-private-1-${Environment}
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select
+        - 0
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-private-1-${Environment}
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
-        VpcId: !Ref VPC
-        CidrBlock: 10.0.2.0/24
-        AvailabilityZone: !Select [1, !GetAZs '']
-        Tags:
-          - Key: Name
-            Value: !Sub docvault-private-2-${Environment}
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-private-2-${Environment}
 
   # ============ Route Table ============
-  
+
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -72,20 +76,18 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub docvault-private-rt-${Environment}
-          
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnet1
       RouteTableId: !Ref PrivateRouteTable
-    
+
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
-
 
   # ============ API Gateway Enpoint ============
 
@@ -96,7 +98,7 @@ Resources:
       VpcId: !Ref VPC
       VpcEndpointType: Gateway
       RouteTableIds:
-          - !Ref PrivateRouteTable
+        - !Ref PrivateRouteTable
 
   # ============ API Gateway Enpoint ============
 
@@ -111,7 +113,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub docvault-lambda-sg-${Environment}
-  
+
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -138,7 +140,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub docvault-db-subnet-${Environment}
-  
+
   RDSInstance:
     Type: AWS::RDS::DBInstance
     Properties:
@@ -181,5 +183,40 @@ Resources:
   # LoggingBucket:
   #   Type: AWS::S3::Bucket
 
-
-  
+  DocVaultFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub docvault-api-${Environment}
+      CodeUri: .
+      Handler: docvault.main.handler
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        Subnetids:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
+      Environment:
+        Variables:
+          DATABASE_URL: !Sub postgresql+asyncpg://${DBUsername}:${DBPassword}@${RDSInstance.Endpoint.Address}:5432/docvault
+          S3_ENDPOINT: ""
+          BUCKET_NAME: !Ref FilesBucket
+          AWS_REGION_NAME: !Ref AWS::Region
+          SECRET_KEY: !Sub "{{resolve:secretsmanager:docvault-secret-${Environment}:SecretString:secret_key}}"
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref FilesBucket
+        - VPCAccessPolicy: {}
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: Any
+        RootApi:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: Any
