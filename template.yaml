@@ -81,12 +81,11 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable
     
   PrivateSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: !Sub docvautl-private-2-rb-${Envrionment}
-          RouteTableId:: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
 
   # ============ API Gateway Enpoint ============
 
@@ -98,3 +97,89 @@ Resources:
       VpcEndpointType: Gateway
       RouteTableIds:
           - !Ref PrivateRouteTable
+
+  # ============ API Gateway Enpoint ============
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Lambda Function
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrBlock: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-lambda-sg-${Environment}
+  
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for RDS
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-lambda-sg-${Environment}
+  
+  # ============ RDS ===============
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for Docvault RDS
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-db-subnet-${Environment}
+  
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub docvault-db-${Environment}
+      DBInstanceClass: db.t4g.micro
+      Engine: postgres
+      EngineVersion: "17"
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      DBName: docvault
+      AllocatedStorage: 20
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroup: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      DeletionProtection: false # Setting this on false so that sam delete will be able to delete (in any other real scenario this becomes true)
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-db-${Environment}
+
+  # ============= S3 Bucket ==============
+
+  FilesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub docvault-files-${Environment}-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      # LoggingConfiguration: 
+      #   DestinationBucketName: !Ref LoggingBucket
+      #   LogFilePrefix: !Sub docvault-${Environment}-logs
+      Tags:
+        - Key: Name
+          Value: !Sub docvault-files-${Environment}
+
+  # LoggingBucket:
+  #   Type: AWS::S3::Bucket
+
+
+  
