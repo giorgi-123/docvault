@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from mangum import Mangum
 
 from docvault.routers.auth import router
 from docvault.routers.folder import folder_router
@@ -21,3 +22,5 @@ def health_check():
 app.include_router(router)
 app.include_router(folder_router)
 app.include_router(file_router)
+
+handler = Mangum(app)

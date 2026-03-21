@@ -6,14 +6,16 @@ from docvault.config import settings
 _logger = logging.getLogger(__name__)
 
 def get_client():
-    s3_client = boto3.client(
-        "s3",
-        endpoint_url=settings.s3_endpoint,
-        region_name=settings.aws_region_name,
-        aws_access_key_id=settings.aws_access_key_id,
-        aws_secret_access_key=settings.aws_secret_access_key,
-    )
-    return s3_client
+    if settings.s3_endpoint:
+        return boto3.client(
+            "s3",
+            endpoint_url=settings.s3_endpoint,
+            region_name=settings.aws_region_name,
+            aws_access_key_id=settings.aws_access_key_id,
+            aws_secret_access_key=settings.aws_secret_access_key,
+        )
+    else:
+        return boto3.client("s3", region_name=settings.aws_region_name)
 
 def upload(file_content: bytes, s3_key: str, content_type: str) -> bool:
     s3_client = get_client()

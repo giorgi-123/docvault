@@ -210,3 +210,8 @@ __marimo__/
 alembic/versions
 CLAUDE.md
 .claude/
+
+# AWS SAM
+.aws-sam/
+output.json
+samconfig.toml

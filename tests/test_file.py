@@ -1,8 +1,6 @@
 
 async def test_upload(client, auth_headers):
-    """
-    TODO: Simple Description
-    """
+    """Test that an authenticated user can upload a file successfully."""
     response = await client.post(
         "/files/",
         files={"file": ("test.txt", b"Test Content", "text/plain")},
@@ -16,9 +14,7 @@ async def test_upload(client, auth_headers):
     assert data["s3_key"]
 
 async def test_upload_file_to_folder(client, auth_headers):
-    """
-    TODO: Simple Description
-    """
+    """Test that a file can be uploaded directly into a specific folder."""
     folder_response = await client.post(
         "/folders/",
         json={"name": "Test Folder"},
@@ -40,9 +36,7 @@ async def test_upload_file_to_folder(client, auth_headers):
     assert data["file_type"] == "text/plain"
 
 async def test_list_files(client, auth_headers):
-    """
-    TODO: Simple Description
-    """
+    """Test that listing files returns only root-level files, excluding files inside folders."""
     folder_response = await client.post(
         "/folders/",
         json={"name": "Test Folder"},
@@ -79,9 +73,7 @@ async def test_list_files(client, auth_headers):
     assert len(listed_files_data["files"]) == 5
 
 async def test_get_file_by_id(client, auth_headers):
-    """
-    TODO: Simple Description
-    """
+    """Test that a single file can be retrieved by its ID."""
     file_response = await client.post(
         "/files/",
         files={"file": ("test.txt", b"Test Content", "text/plain")},
@@ -98,9 +90,7 @@ async def test_get_file_by_id(client, auth_headers):
     assert data["id"] == file_id
 
 async def test_get_nonexistent_file(client, auth_headers):
-    """
-    TODO: Simple Description
-    """
+    """Test that requesting a file that does not exist returns 404."""
     response = await client.get(
         "/files/12763",
         headers=auth_headers,
@@ -109,9 +99,7 @@ async def test_get_nonexistent_file(client, auth_headers):
     assert response.status_code == 404
 
 async def test_download_file(client, auth_headers):
-    """
-    TODO: Simple Description
-    """
+    """Test that a file can be downloaded and its content matches what was uploaded."""
     file_response = await client.post(
         "/files/",
         files={"file": ("test.txt", b"Test Content", "text/plain")},
@@ -128,9 +116,7 @@ async def test_download_file(client, auth_headers):
     assert download_file_response.content == b"Test Content"
 
 async def test_delete_file(client, auth_headers):
-    """
-    TODO: Simple Description
-    """
+    """Test that an authenticated user can delete a file successfully."""
     file_response = await client.post(
         "/files/",
         files={"file": ("test.txt", b"Test Content", "text/plain")},
@@ -147,9 +133,7 @@ async def test_delete_file(client, auth_headers):
     assert delete_response.status_code == 204
 
 async def test_unauthenticated_access(client):
-    """
-    TODO: Simple Description
-    """
+    """Test that file upload without a token is rejected with 401."""
     response = await client.post(
         "/files/",
         files={"file": ("test.txt", b"Unauthorized File", "text/plain")},
