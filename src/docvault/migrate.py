@@ -1,10 +1,6 @@
 import asyncio
 from sqlalchemy import text
 from docvault.database import engine, Base
-from docvault.models.user import User
-from docvault.models.folder import Folder
-from docvault.models.file import File
-
 
 async def run_migrations():
     """Create all tables in the database."""
