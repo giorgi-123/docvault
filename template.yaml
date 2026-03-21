@@ -109,7 +109,7 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupEgress:
         - IpProtocol: -1
-          CidrBlock: 0.0.0.0/0
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: !Sub docvault-lambda-sg-${Environment}
@@ -155,7 +155,7 @@ Resources:
       StorageType: gp2
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup
-      DBSubnetGroup: !Ref DBSubnetGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
       PubliclyAccessible: false
       DeletionProtection: false # Setting this on false so that sam delete will be able to delete (in any other real scenario this becomes true)
       Tags:
@@ -187,7 +187,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub docvault-api-${Environment}
-      CodeUri: .
+      CodeUri: src/
       Handler: docvault.main.handler
       Runtime: python3.13
       MemorySize: 256
@@ -226,6 +226,27 @@ Resources:
           Properties:
             Path: /
             Method: Any
+
+  MigrationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub docvault-migrate-${Environment}
+      CodeUri: src/
+      Handler: docvault.migrate.handler
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 60
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+          - !Ref PrivateSubnet2
+      Environment:
+        Variables:
+          DATABASE_URL: !Sub postgresql+asyncpg://${DBUsername}:${DBPassword}@${RDSInstance.Endpoint.Address}:5432/docvault
+      Policies:
+        - VPCAccessPolicy: {}
 
 Outputs:
   ApiUrl:
