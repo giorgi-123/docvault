@@ -56,4 +56,5 @@ async def check_if_parent(session: AsyncSession, folder_id: int, user_id: int) -
     result = await session.execute(query)
     # we could also use `result.scalars().first() is not None` -> simplier
     # though we will stick with current one
-    return result.scalar_one_or_none() is not None
+    # return result.scalar_one_or_none() is not None
+    return result.scalars().first() is not None

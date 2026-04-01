@@ -10,7 +10,7 @@ from docvault.config import settings
 from docvault.models.user import User
 from docvault.database import get_db
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 bearer_scheme = HTTPBearer()
 
 async def get_current_user(
